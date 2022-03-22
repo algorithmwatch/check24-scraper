@@ -1,0 +1,27 @@
+[tool.poetry]
+authors = ["Johannes Filter <hi@jfilter.de>"]
+description = ""
+name = "check24-scraper"
+packages = [
+  {include = "check24scraper"},
+]
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+beautifulsoup4 = "^4.10.0"
+click = "^8.0.4"
+dataset = "^1.5.2"
+lxml = "^4.8.0"
+python = "^3.10"
+requests-cache = "^0.9.3"
+retry-requests = "^1.0.1"
+tqdm = "^4.63.0"
+boltons = "^21.0.0"
+PySocks = "^1.7.1"
+
+[tool.poetry.dev-dependencies]
+black = {version = "^22.1.0", allow-prereleases = true}
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core>=1.0.0"]
