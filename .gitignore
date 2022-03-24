@@ -16,3 +16,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 data.sqlite*
+*.zip
+check24-scraper/notebooks/export
+*.html*
