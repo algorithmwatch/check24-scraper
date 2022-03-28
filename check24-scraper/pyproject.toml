@@ -8,16 +8,21 @@ packages = [
 version = "0.1.0"
 
 [tool.poetry.dependencies]
+PySocks = "^1.7.1"
 beautifulsoup4 = "^4.10.0"
+boltons = "^21.0.0"
 click = "^8.0.4"
 dataset = "^1.5.2"
+jupyterlab = "^3.3.2"
+lux-api = "^0.5.1"
 lxml = "^4.8.0"
-python = "^3.10"
+pandas = "^1.4.1"
+psycopg2-binary = "^2.9.3"
+python = "3.9.*"
+redis = "^4.2.0"
 requests-cache = "^0.9.3"
 retry-requests = "^1.0.1"
 tqdm = "^4.63.0"
-boltons = "^21.0.0"
-PySocks = "^1.7.1"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.1.0", allow-prereleases = true}

@@ -4,9 +4,14 @@ import random
 
 from bs4 import BeautifulSoup
 from requests import Session
-from requests_cache import CachedSession, SerializerPipeline, Stage, pickle_serializer
+from requests_cache import (
+    CachedSession,
+    SerializerPipeline,
+    Stage,
+    pickle_serializer,
+    RedisCache,
+)
 from retry_requests import retry
-
 
 
 def make_session():
@@ -20,9 +25,9 @@ def make_session():
         ],
         is_binary=True,
     )
-
+    backend = RedisCache(host="localhost", port=6379)
     session = CachedSession(
-        backend="sqlite",
+        backend=backend,
         cache_name="httpcache",
         expire_after=60 * 60 * 24 * 31,
         cache_control=False,
@@ -42,6 +47,7 @@ def make_session():
 
 session = make_session()
 
+
 @lru_cache
 def get_proxies():
     all_servers = session.get("https://api.mullvad.net/www/relays/all/").json()
@@ -52,15 +58,15 @@ def get_proxies():
     ]
 
 
-
 def _get(url):
     while True:
         try:
             chosen_proxy = random.choice(get_proxies())
             proxies = {"https": chosen_proxy, "http": chosen_proxy}
             return session.get(url, timeout=5, proxies=proxies)
-        except:
-            pass
+        except Exception as ex:
+            if type(ex) == KeyboardInterrupt:
+                break
 
 
 def fetch(url):
