@@ -9,7 +9,7 @@ from requests_cache import (
     SerializerPipeline,
     Stage,
     pickle_serializer,
-    RedisCache,
+    FileCache,
 )
 from retry_requests import retry
 
@@ -25,11 +25,11 @@ def make_session():
         ],
         is_binary=True,
     )
-    backend = RedisCache(host="localhost", port=6379)
+    backend = FileCache()
     session = CachedSession(
         backend=backend,
         cache_name="httpcache",
-        expire_after=60 * 60 * 24 * 31,
+        expire_after=-1,
         cache_control=False,
         allowable_codes=[200, 404],
         serializer=compressed_serializer,
