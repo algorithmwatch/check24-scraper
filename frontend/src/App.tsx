@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { createElement, useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { FormInputs, Step1, Step2, Step3 } from "features/steps";
 
@@ -8,6 +8,9 @@ function App() {
   const [stepIndex, setStepIndex] = useState(0);
   const methods = useForm<FormInputs>({
     mode: "onChange",
+    defaultValues: {
+      jobIds: [{ value: "" }],
+    },
   });
   const {
     watch,
@@ -43,7 +46,7 @@ function App() {
     []
   );
 
-  // watch input change and update params
+  // watch input change and update
   useEffect(() => {
     const subscription = watch(handleFormChange);
     return () => subscription.unsubscribe();
@@ -53,7 +56,7 @@ function App() {
     <div className="flex items-center justify-center w-screen h-screen bg-gray-100">
       <div className="max-w-lg w-full mx-auto">
         <FormProvider {...methods}>
-          {React.createElement(Steps[stepIndex], {
+          {createElement(Steps[stepIndex], {
             setNextStep: setNextStepIndex,
             setPreviousStep: setPreviousStepIndex,
           })}
