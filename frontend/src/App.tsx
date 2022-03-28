@@ -1,23 +1,64 @@
-import React from "react";
-import logo from "./logo.svg";
+import React, { useEffect, useMemo, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { FormInputs, Step1, Step2, Step3 } from "features/steps";
+
+const Steps = [Step1, Step2, Step3];
 
 function App() {
+  const [stepIndex, setStepIndex] = useState(0);
+  const methods = useForm<FormInputs>({
+    mode: "onChange",
+  });
+  const {
+    watch,
+    register,
+    setValue,
+    getValues,
+    resetField,
+    getFieldState,
+    formState: { errors, isValid },
+  } = methods;
+
+  const setNextStepIndex = () => {
+    const lastStepIndex = Steps.length - 1;
+
+    if (stepIndex === lastStepIndex) {
+      return;
+    }
+
+    setStepIndex(stepIndex + 1);
+  };
+  const setPreviousStepIndex = () => {
+    if (stepIndex === 0) {
+      return;
+    }
+
+    setStepIndex(stepIndex - 1);
+  };
+
+  const handleFormChange = useMemo(
+    () => () => {
+      console.warn("test", getValues());
+    },
+    []
+  );
+
+  // watch input change and update params
+  useEffect(() => {
+    const subscription = watch(handleFormChange);
+    return () => subscription.unsubscribe();
+  }, [handleFormChange, watch]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="flex items-center justify-center w-screen h-screen bg-gray-100">
+      <div className="max-w-lg w-full mx-auto">
+        <FormProvider {...methods}>
+          {React.createElement(Steps[stepIndex], {
+            setNextStep: setNextStepIndex,
+            setPreviousStep: setPreviousStepIndex,
+          })}
+        </FormProvider>
+      </div>
     </div>
   );
 }
