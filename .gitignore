@@ -19,3 +19,5 @@ data.sqlite*
 *.zip
 check24-scraper/notebooks/export
 *.html*
+http_cache
+deploy.sh

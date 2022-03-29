@@ -1,8 +1,8 @@
-import concurrent.futures
 import json
 import random
 import string
 from datetime import datetime
+from functools import partial
 from itertools import product
 from pathlib import Path
 
@@ -45,6 +45,7 @@ def parse_html(html):
             continue
 
         result = {}
+        result["raw_html"] = str(row)
         result["tariff_id"] = row.attrs["data-tariff-id"]
         result["tariff_name"] = row.attrs["data-tariff-name"]
         result["tariff_variation"] = row.attrs["data-tariff-variation-key"]
@@ -59,7 +60,7 @@ def parse_html(html):
     return results
 
 
-def _get_tariff(arg):
+def _get_tariff(arg, onlyFetch=False):
     oc, dob, smoker = arg
     # special for 'never smoked'
     nonsmokeryears = 255
@@ -71,6 +72,9 @@ def _get_tariff(arg):
         return
 
     html = fetch(url)
+
+    if onlyFetch:
+        return
 
     if html is None:
         raise Exception("fuck")
@@ -88,7 +92,7 @@ def _get_tariff(arg):
     tab_res.insert_many(results)
 
 
-def get_tariffs():
+def get_tariffs(onlyFetch=False):
     option_jobs = json.loads(Path("jobs.json").read_text())
     option_dob = [f"{y}-12-13" for y in range(1974, 2004)]
     option_smoker = ["yes", "no"]
@@ -96,11 +100,7 @@ def get_tariffs():
 
     random.shuffle(prods)
 
-    # init db
-    _get_tariff(prods[0])
+    f = partial(_get_tariff, onlyFetch=onlyFetch)
 
-    # for x in tqdm(prods):
-    # _get_tariff(*x)
-
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = list(tqdm(executor.map(_get_tariff, prods), total=len(prods)))
+    for x in tqdm(prods):
+        f(x)
