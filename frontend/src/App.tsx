@@ -41,7 +41,7 @@ function App() {
 
   const handleFormChange = useMemo(
     () => () => {
-      console.warn("test", getValues());
+      // console.warn("test", getValues());
     },
     []
   );

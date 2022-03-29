@@ -16,8 +16,10 @@ export type TextInputProps = {
     | "tel";
   startIcon?: string;
   placeholder?: string;
+  autoComplete?: string;
   className?: string;
   registration: Partial<UseFormRegisterReturn>;
+  onFocus?: (args: any) => any;
   error?: FieldError | undefined;
 };
 
@@ -28,8 +30,10 @@ export const TextInput = ({
   type = "text",
   startIcon,
   placeholder,
+  autoComplete,
   className,
   registration,
+  onFocus,
   error,
 }: TextInputProps) => {
   return (
@@ -48,6 +52,8 @@ export const TextInput = ({
         id={id}
         type={type}
         placeholder={placeholder}
+        autoComplete={autoComplete}
+        onFocus={onFocus}
         className={clsx(
           "appearance-none autofill:bg-white block w-full px-3 py-2.5 rounded-md shadow-sm",
           "border border-gray-300 placeholder-gray-400",

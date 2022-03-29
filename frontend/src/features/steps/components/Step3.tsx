@@ -2,10 +2,13 @@ import * as React from "react";
 import { Button, Card } from "components/Elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FormInputs } from "..";
-import { Autocomplete, Repeater } from "components/Form";
+import { Autocomplete, Suggestion } from "components/Form";
 import jobs from "jobs.json";
+import { useState } from "react";
+import { useMemo } from "react";
+import { useEffect } from "react";
 
-const suggestions = jobs.map((job) => ({ id: job[0], value: job[1] }));
+const allSuggestions = jobs.map((job) => ({ id: job[0], value: job[1] }));
 
 export const Step3 = ({
   setNextStep,
@@ -16,14 +19,53 @@ export const Step3 = ({
 }) => {
   const {
     register,
-    watch,
     control,
+    setValue,
     formState: { errors, isValid },
   } = useFormContext<FormInputs>();
   const jobIds = useFieldArray({
     name: "jobIds",
     control,
   });
+  const [searchTerms, setSearchTerms] = useState<string[]>([]);
+  const addField = () => {
+    jobIds.append({ value: "" });
+    setSearchTerms([...searchTerms, ""]);
+  };
+  const removeField = (index: number) => {
+    jobIds.remove(index);
+    setSearchTerms(
+      searchTerms.filter((item, itemIndex) => itemIndex !== index)
+    );
+  };
+  const selectSuggestion = (index: number, suggestion: Suggestion) =>
+    setValue(`jobIds.${index}`, suggestion);
+  const updateSearchTerms = (index: number, value: string) => {
+    console.warn(searchTerms);
+    const nextSearchTerms = searchTerms.map((item, itemIndex) => {
+      if (index === itemIndex) {
+        return value;
+      } else {
+        return item;
+      }
+    });
+    setSearchTerms(nextSearchTerms);
+    console.warn(nextSearchTerms);
+  };
+  const getSuggestions = useMemo(
+    () => (index: number, searchTerm: string) => {
+      // console.count("getSuggestions");
+
+      return searchTerm.length
+        ? allSuggestions.filter(
+            (suggestion) =>
+              suggestion.value.toLowerCase().indexOf(searchTerm.toLowerCase()) >
+              -1
+          )
+        : allSuggestions;
+    },
+    []
+  );
 
   return (
     <Card
@@ -46,32 +88,23 @@ export const Step3 = ({
 
       {/* Repeater */}
       <div className="space-y-4">
-        {!jobIds.fields.length && (
-          <Button
-            variant="secondary"
-            onClick={() => jobIds.append({ value: "" })}
-          >
-            Add
-          </Button>
-        )}
         {jobIds.fields.map((item, index) => (
           <div key={item.id} className="flex space-x-2">
             <Autocomplete
               className="flex-grow"
-              suggestions={suggestions}
+              suggestions={getSuggestions(index, searchTerms[index] || "")}
               registration={register(`jobIds.${index}.value`, {
                 // valueAsNumber: true,
               })}
+              onSelect={(suggestion) => selectSuggestion(index, suggestion)}
+              onChange={(value) => updateSearchTerms(index, value)}
             />
 
-            <Button variant="secondary" onClick={() => jobIds.remove(index)}>
+            <Button variant="secondary" onClick={() => removeField(index)}>
               -
             </Button>
             {index === jobIds.fields.length - 1 && (
-              <Button
-                variant="secondary"
-                onClick={() => jobIds.append({ value: "" })}
-              >
+              <Button variant="secondary" onClick={addField}>
                 +
               </Button>
             )}
@@ -81,15 +114,3 @@ export const Step3 = ({
     </Card>
   );
 };
-
-// <Repeater
-// component={Autocomplete}
-// fields={jobIds.fields}
-// onRegister={(index) =>
-//   register(`jobIds.${index}.value`, {
-//     valueAsNumber: true,
-//   })
-// }
-// onAppend={() => jobIds.append({ value: undefined })}
-// onRemove={(index) => jobIds.remove(index)}
-// />

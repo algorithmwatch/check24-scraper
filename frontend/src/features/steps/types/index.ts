@@ -1,5 +1,5 @@
 export type FormInputs = {
   birthyear: number;
   isSmoker: boolean;
-  jobIds?: { value: string }[]; // react-hook-form doesn't support flat arrays
+  jobIds?: { id: string; value: string }[]; // react-hook-form doesn't support flat arrays
 };
