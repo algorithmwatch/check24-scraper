@@ -45,6 +45,7 @@ def parse_html(html):
             continue
 
         result = {}
+        result["raw_html"] = str(row)
         result["tariff_id"] = row.attrs["data-tariff-id"]
         result["tariff_name"] = row.attrs["data-tariff-name"]
         result["tariff_variation"] = row.attrs["data-tariff-variation-key"]

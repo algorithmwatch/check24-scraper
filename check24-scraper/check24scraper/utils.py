@@ -18,24 +18,25 @@ def make_session():
     """ """
     # if "CACHE" in os.environ:
 
-    compressed_serializer = SerializerPipeline(
-        [
-            pickle_serializer,
-            Stage(dumps=gzip.compress, loads=gzip.decompress),
-        ],
-        is_binary=True,
-    )
-    backend = FileCache()
-    session = CachedSession(
-        backend=backend,
-        cache_name="httpcache",
-        expire_after=-1,
-        cache_control=False,
-        allowable_codes=[200, 404],
-        serializer=compressed_serializer,
-    )
-    # else:
-    #     session = Session()
+    if False:
+        compressed_serializer = SerializerPipeline(
+            [
+                pickle_serializer,
+                Stage(dumps=gzip.compress, loads=gzip.decompress),
+            ],
+            is_binary=True,
+        )
+        backend = FileCache()
+        session = CachedSession(
+            backend=backend,
+            cache_name="httpcache",
+            expire_after=-1,
+            cache_control=False,
+            allowable_codes=[200, 404],
+            serializer=compressed_serializer,
+        )
+    else:
+        session = Session()
 
     session.headers.update(
         {

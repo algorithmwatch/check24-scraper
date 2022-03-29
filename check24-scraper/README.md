@@ -16,7 +16,7 @@
 set -e
 set -x
 
-poetry run python check24scraper/cli.py --tariffs
+/root/.poetry/bin/poetry run python check24scraper/cli.py --tariffs
 ```
 
 ```bash
@@ -34,4 +34,13 @@ done
 ```bash
 # crontab
 13 * * * * /root/check24-scraper/start.sh
+```
+
+```bash
+# deploy.sh
+#!/usr/bin/env bash
+set -e
+set -x
+
+rsync -rvz --exclude notebooks --exclude __pycache__ --exclude http_cache -e 'ssh -p xx' check24-scraper root@xx:~/
 ```
