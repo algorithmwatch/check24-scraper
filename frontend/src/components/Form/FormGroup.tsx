@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import * as React from "react";
+import React from "react";
 import { FieldError } from "react-hook-form";
 
 type FormGroupProps = {

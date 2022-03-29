@@ -1,42 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChangeHandler } from "react-hook-form";
-import { TextInputProps } from ".";
-import { TextInput } from "./TextInput";
+import { TextInput, TextInputProps } from ".";
 import { debounce } from "lodash";
+import { useOutsideAlerter } from "hooks";
 
 export type Suggestion = { id: string; value: string };
 export type SuggestionList = Suggestion[];
 
 type AutocompleteProps = TextInputProps & {
+  minChar?: number;
   suggestions: SuggestionList;
   onSelect: (args: Suggestion) => void;
   onChange: (value: string) => void;
 };
-
-/**
- * Hook that alerts clicks outside of the passed ref
- * credits: https://codesandbox.io/s/outside-alerter-hooks-lmr2y?module=/src/OutsideAlerter.js&file=/src/OutsideAlerter.js:87-679
- */
-function useOutsideAlerter(ref: any, cb: Function) {
-  useEffect(() => {
-    /**
-     * Alert if clicked on outside of element
-     */
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target)) {
-        if (typeof cb === "function") {
-          cb();
-        }
-      }
-    }
-    // Bind the event listener
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      // Unbind the event listener on clean up
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [ref, cb]);
-}
 
 const SuggestionsList = ({
   list,
@@ -69,23 +45,32 @@ const SuggestionsList = ({
 };
 
 export const Autocomplete = ({
+  minChar = 2,
   suggestions,
   onSelect,
   onChange,
   ...props
 }: AutocompleteProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const changeHandler = useCallback(
     (event): Promise<boolean | void> => {
-      onChange(event.target.value);
+      const term = event.target.value.trim();
       setActiveSuggestionIndex(0);
-      setShowSuggestions(true);
+
+      if (term.length >= minChar) {
+        setSearchTerm(term);
+        onChange(term);
+        setShowSuggestions(!!term);
+      } else {
+        setShowSuggestions(false);
+      }
 
       return Promise.resolve();
     },
 
-    [onChange]
+    [minChar, onChange]
   );
   const selectHandler = (args: Suggestion) => {
     // setFilteredSuggestions([]);
@@ -98,7 +83,7 @@ export const Autocomplete = ({
     [changeHandler]
   );
   const focusHandler = () => {
-    if (suggestions.length) {
+    if (searchTerm.length && suggestions.length) {
       setShowSuggestions(true);
     }
   };

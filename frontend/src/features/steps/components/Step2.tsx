@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { Button, Card } from "components/Elements";
 import { useFormContext } from "react-hook-form";
 import { FormInputs } from "..";

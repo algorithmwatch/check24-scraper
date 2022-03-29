@@ -1,12 +1,10 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { Button, Card } from "components/Elements";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FormInputs } from "..";
 import { Autocomplete, Suggestion } from "components/Form";
 import jobs from "jobs.json";
-import { useState } from "react";
 import { useMemo } from "react";
-import { useEffect } from "react";
 
 const allSuggestions = jobs.map((job) => ({ id: job[0], value: job[1] }));
 
@@ -27,7 +25,7 @@ export const Step3 = ({
     name: "jobIds",
     control,
   });
-  const [searchTerms, setSearchTerms] = useState<string[]>([]);
+  const [searchTerms, setSearchTerms] = useState<string[]>([""]); // must have a default empty value, because input has one as well
   const addField = () => {
     jobIds.append({ value: "" });
     setSearchTerms([...searchTerms, ""]);
