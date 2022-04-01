@@ -1,10 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChangeHandler } from "react-hook-form";
+import { useRef, useState, startTransition } from "react";
 import { TextInput, TextInputProps } from ".";
-import { debounce } from "lodash";
 import { useOutsideAlerter } from "hooks";
 
-export type Suggestion = { id: string; value: string };
+export type Suggestion = { id: string; value: string; matches?: any };
 export type SuggestionList = Suggestion[];
 
 type AutocompleteProps = TextInputProps & {
@@ -12,6 +10,26 @@ type AutocompleteProps = TextInputProps & {
   suggestions: SuggestionList;
   onSelect: (args: Suggestion) => void;
   onChange: (value: string) => void;
+};
+
+const highlightText = (inputText: string, regions: number[][]) => {
+  // src: https://gist.github.com/evenfrost/1ba123656ded32fb7a0cd4651efd4db0
+  // discussion: https://github.com/krisk/Fuse/issues/6
+  let content = "";
+  let nextUnhighlightedRegionStartingIndex = 0;
+  for (let i = 0, l = regions.length; i < l; i++) {
+    const region = regions[i];
+    const lastRegionNextIndex = region[1] + 1;
+    content += [
+      inputText.substring(nextUnhighlightedRegionStartingIndex, region[0]),
+      "<strong>",
+      inputText.substring(region[0], lastRegionNextIndex),
+      "</strong>",
+    ].join("");
+    nextUnhighlightedRegionStartingIndex = lastRegionNextIndex;
+  }
+  content += inputText.substring(nextUnhighlightedRegionStartingIndex);
+  return content;
 };
 
 const SuggestionsList = ({
@@ -25,14 +43,15 @@ const SuggestionsList = ({
     <div className="relative z-50">
       <ul className="max-h-52 overflow-y-scroll absolute inset-x-0 top-1.5 py-2 w-full bg-white rounded-b-md shadow-md border border-gray-300 ">
         {list.length ? (
-          list.map(({ id, value }) => (
+          list.map(({ id, value, matches }) => (
             <li
               key={id}
               className="px-2.5 py-1.5 hover:bg-indigo-100 cursor-pointer"
               onClick={() => onListItemSelect({ id, value })}
-            >
-              {value}
-            </li>
+              dangerouslySetInnerHTML={{
+                __html: highlightText(value, matches),
+              }}
+            ></li>
           ))
         ) : (
           <li className="px-2.5 py-1.5 italic text-gray-500">
@@ -54,8 +73,8 @@ export const Autocomplete = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const changeHandler = useCallback(
-    (event): Promise<boolean | void> => {
+  const changeHandler = (event: any) => {
+    startTransition(() => {
       const term = event.target.value.trim();
       setActiveSuggestionIndex(0);
 
@@ -66,39 +85,25 @@ export const Autocomplete = ({
       } else {
         setShowSuggestions(false);
       }
-
-      return Promise.resolve();
-    },
-
-    [minChar, onChange]
-  );
+    });
+    return Promise.resolve();
+  };
   const selectHandler = (args: Suggestion) => {
     // setFilteredSuggestions([]);
     setActiveSuggestionIndex(0);
     setShowSuggestions(false);
     onSelect(args);
   };
-  const debouncedChangeHandler = useMemo(
-    () => debounce(changeHandler, 300),
-    [changeHandler]
-  );
   const focusHandler = () => {
     if (searchTerm.length && suggestions.length) {
       setShowSuggestions(true);
     }
   };
 
-  props.registration.onChange = debouncedChangeHandler as ChangeHandler;
+  props.registration.onChange = changeHandler;
 
   const wrapperRef = useRef(null);
   useOutsideAlerter(wrapperRef, () => setShowSuggestions(false));
-
-  // destroy debounce handler on unmount
-  useEffect(() => {
-    return () => debouncedChangeHandler.cancel();
-  }, [debouncedChangeHandler]);
-
-  console.warn(suggestions.length);
 
   return (
     <div className="w-full" ref={wrapperRef}>

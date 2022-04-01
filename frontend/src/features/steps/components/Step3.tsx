@@ -5,8 +5,11 @@ import { FormInputs } from "..";
 import { Autocomplete, Suggestion } from "components/Form";
 import jobs from "jobs.json";
 import { useMemo } from "react";
+import Fuse from "fuse.js";
 
 const allSuggestions = jobs.map((job) => ({ id: job[0], value: job[1] }));
+const searchOptions = { keys: ["value"], includeMatches: true };
+const searchIndex = Fuse.createIndex(searchOptions.keys, allSuggestions);
 
 export const Step3 = ({
   setNextStep,
@@ -39,7 +42,6 @@ export const Step3 = ({
   const selectSuggestion = (index: number, suggestion: Suggestion) =>
     setValue(`jobIds.${index}`, suggestion);
   const updateSearchTerms = (index: number, value: string) => {
-    console.warn(searchTerms);
     const nextSearchTerms = searchTerms.map((item, itemIndex) => {
       if (index === itemIndex) {
         return value;
@@ -48,19 +50,20 @@ export const Step3 = ({
       }
     });
     setSearchTerms(nextSearchTerms);
-    console.warn(nextSearchTerms);
   };
   const getSuggestions = useMemo(
     () => (index: number, searchTerm: string) => {
-      // console.count("getSuggestions");
-
-      return searchTerm.length
-        ? allSuggestions.filter(
-            (suggestion) =>
-              suggestion.value.toLowerCase().indexOf(searchTerm.toLowerCase()) >
-              -1
-          )
-        : allSuggestions;
+      if (searchTerm.length) {
+        const fuse = new Fuse(allSuggestions, searchOptions, searchIndex);
+        return fuse
+          .search(searchTerm)
+          .map((result) => ({
+            ...result.item,
+            matches: result.matches?.[0].indices,
+          }))
+          .slice(0, 20);
+      }
+      return allSuggestions;
     },
     []
   );
