@@ -46,7 +46,8 @@ def make_session():
 
     session.headers.update(
         {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0"
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36"
+            # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0"
         }
     )
     return retry(session, retries=5, backoff_factor=0.2)
@@ -85,7 +86,7 @@ def _get(url):
         print(prev_res)
 
         if (
-            prev_res["status"] == 429
+            prev_res["status"] in (403, 429)
             and prev_res["created_at"] + timedelta(hours=1) > datetime.now()
         ):
             print(prev_res)
@@ -108,7 +109,7 @@ def _get(url):
             }
         )
         print(res.status_code, chosen_proxy)
-        if res.status_code == 429:
+        if res.status_code in (403, 429):
             time.sleep(2)
             return _get(url)
         else:
@@ -122,6 +123,7 @@ def _get(url):
 def fetch(url):
     res = _get(url)
     if not res.ok:
+        print(res.text)
         print(res.status_code)
         return None
     html_content = res.text
