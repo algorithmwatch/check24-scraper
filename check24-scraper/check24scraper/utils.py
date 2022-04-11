@@ -87,11 +87,12 @@ def _get(url):
 
         if (
             prev_res["status"] in (403, 429)
-            and prev_res["created_at"] + timedelta(hours=1) > datetime.now()
+            and prev_res["created_at"] + timedelta(hours=2) > datetime.now()
         ):
-            print(prev_res)
+            pass
+            # print(prev_res)
             # choose new proxy, sleep some time because we scraped too fast
-            time.sleep(2)
+            # time.sleep(2)
         else:
             break
 

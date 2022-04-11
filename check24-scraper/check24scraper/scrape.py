@@ -98,7 +98,7 @@ def get_tariffs(onlyFetch=False):
     option_smoker = ["yes", "no"]
     prods = list(product(option_jobs, option_dob, option_smoker))
 
-    random.shuffle(prods)
+    # random.shuffle(prods)
 
     f = partial(_get_tariff, onlyFetch=onlyFetch)
 
